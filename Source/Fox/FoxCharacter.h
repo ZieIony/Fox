@@ -32,6 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UInputAction* LookAction;
+
 	AFoxCharacter();
 
 protected:
@@ -47,4 +50,6 @@ public:
 	void JumpStarted(const FInputActionValue& value);
 
 	void JumpEnded(const FInputActionValue& value);
+
+	void Look(const FInputActionValue& value);
 };

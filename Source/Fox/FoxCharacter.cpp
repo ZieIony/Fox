@@ -41,6 +41,8 @@ void AFoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		enhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFoxCharacter::JumpStarted);
 		enhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFoxCharacter::JumpEnded);
 		enhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Canceled, this, &AFoxCharacter::JumpEnded);
+
+		enhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFoxCharacter::Look);
 	} else {
 		throw std::exception("enhancedInputComponent is null");
 	}
@@ -48,8 +50,9 @@ void AFoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 void AFoxCharacter::Move(const FInputActionValue& value) {
 	FVector2D moveActionValue = value.Get<FVector2D>();
-	FVector dir = { moveActionValue.Y, moveActionValue.X, 0 };
-	AddMovementInput(dir);
+	auto forward = GetActorForwardVector();
+	auto right = GetActorRightVector();
+	AddMovementInput(forward * moveActionValue.Y + right * moveActionValue.X);
 }
 
 void AFoxCharacter::JumpStarted(const FInputActionValue& value) {
@@ -58,4 +61,10 @@ void AFoxCharacter::JumpStarted(const FInputActionValue& value) {
 
 void AFoxCharacter::JumpEnded(const FInputActionValue& value) {
 	StopJumping();
+}
+
+void AFoxCharacter::Look(const FInputActionValue& value) {
+	FVector2D lookActionValue = value.Get<FVector2D>();
+	AddControllerYawInput(lookActionValue.X);
+	AddControllerPitchInput(lookActionValue.Y);
 }
