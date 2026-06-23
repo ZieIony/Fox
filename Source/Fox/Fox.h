@@ -1,6 +1,7 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 
+class FFoxGameModule final: public FDefaultGameModuleImpl {
+	virtual void StartupModule() override;
+};

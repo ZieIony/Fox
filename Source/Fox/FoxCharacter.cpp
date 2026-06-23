@@ -2,6 +2,7 @@
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
+#include "HeatSubsystem.h"
 
 AFoxCharacter::AFoxCharacter() {
 	PrimaryActorTick.bCanEverTick = true;
