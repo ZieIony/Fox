@@ -6,6 +6,8 @@
 #include "NativeGameplayTags.h"
 #include "PowerSourceState.h"
 #include "PowerSourceType.h"
+#include "InteractionComponent.h"
+
 #include "PowerSource.generated.h"
 
 class APowerSource;
@@ -15,6 +17,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPowerSourceOnWorkingChanged, APowe
 UCLASS()
 class FOX_API APowerSource: public AActor, public IGameplayTagAssetInterface {
 	GENERATED_BODY()
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	UInteractionComponent* InteractionComponent;
+
+	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Gameplay")
@@ -35,12 +45,7 @@ public:
 		return PowerSourceState == EPowerSourceState::Working;
 	}
 
-protected:
-	virtual void BeginPlay() override;
-
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-public:
+	UFUNCTION(BlueprintCallable)
 	void StartPowerSource() {
 		if (PowerSourceState == EPowerSourceState::Idle) {
 			PowerSourceState = EPowerSourceState::Working;
@@ -48,6 +53,7 @@ public:
 		}
 	}
 
+	UFUNCTION(BlueprintCallable)
 	void StopPowerSource() {
 		if (PowerSourceState == EPowerSourceState::Working) {
 			PowerSourceState = EPowerSourceState::Idle;

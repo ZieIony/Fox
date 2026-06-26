@@ -14,6 +14,11 @@ UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class FOX_API UHeatSourceComponent: public UStaticMeshComponent, public IGameplayTagAssetInterface {
 	GENERATED_BODY()
 
+protected:
+	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	float MinHeatSize = 2;
@@ -38,16 +43,12 @@ public:
 
 	UHeatSourceComponent();
 
-protected:
-	virtual void BeginPlay() override;
-
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-public:
+	UFUNCTION(BlueprintCallable)
 	bool StartHeatSource();
 
 	bool StartHeatSource(APowerSource* powerSource);
 
+	UFUNCTION(BlueprintCallable)
 	bool StopHeatSource() {
 		if (HeatSourceState == EHeatSourceState::Broken || HeatSourceState == EHeatSourceState::Idle)
 			return false;
@@ -55,6 +56,7 @@ public:
 		return true;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	bool BreakHeatSource() {
 		if (HeatSourceState == EHeatSourceState::Broken)
 			return false;
@@ -81,4 +83,6 @@ public:
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override {
 		TagContainer.AppendTags(this->GameplayTags);
 	}
+
+	virtual void OnRegister() override;
 };

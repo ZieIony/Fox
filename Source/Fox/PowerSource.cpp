@@ -1,6 +1,6 @@
 #include "PowerSource.h"
+
 #include "HeatSubsystem.h"
-#include "FoxGameplayTagManager.h"
 
 static FAutoConsoleCommand StartPowerSource(
 	TEXT("StartPowerSource"),
@@ -56,4 +56,7 @@ void APowerSource::EndPlay(const EEndPlayReason::Type EndPlayReason) {
 
 APowerSource::APowerSource() {
 	PrimaryActorTick.bCanEverTick = true;
+
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
+	InteractionComponent->SetupAttachment(RootComponent);
 }
