@@ -12,6 +12,15 @@
 				"Engine",
 				"UMG"
 			]
+		},
+		{
+			"Name": "EnemyAI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"UMG"
+			]
 		}
 	],
 	"Plugins": [

@@ -2,13 +2,13 @@
 
 using UnrealBuildTool;
 
-public class Fox : ModuleRules
+public class EnemyAI : ModuleRules
 {
-	public Fox(ReadOnlyTargetRules Target) : base(Target)
+	public EnemyAI(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "EnemyAI" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
