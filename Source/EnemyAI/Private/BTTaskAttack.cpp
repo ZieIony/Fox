@@ -14,6 +14,8 @@ void UBTTaskAttack::onAttackFinished(EAIActionResult result) {
 			return EBTNodeResult::Aborted;
 		}
 	}());
+	owner = nullptr;
+	aiController = nullptr;
 }
 
 void UBTTaskAttack::SetOwner(AActor* ActorOwner) {
@@ -43,4 +45,9 @@ EBTNodeResult::Type UBTTaskAttack::AbortTask(UBehaviorTreeComponent& OwnerComp, 
 	owner = nullptr;
 	aiController = nullptr;
 	return EBTNodeResult::Aborted;
+}
+
+void UBTTaskAttack::OnInstanceDestroyed(UBehaviorTreeComponent& OwnerComp) {
+	if (aiController)
+		aiController->OnAttackFinished.RemoveDynamic(this, &UBTTaskAttack::onAttackFinished);
 }
