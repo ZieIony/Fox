@@ -5,6 +5,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "AIActionResult.h"
 #include "EnemyAIState.h"
+#include <MovementType.h>
 
 #include "EnemyAIController.generated.h"
 
@@ -39,4 +40,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CancelAttack();
+
+	// movement
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float WalkSpeed = 150;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float RunSpeed = 300;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float SprintSpeed = 600;
+
+	UFUNCTION(BlueprintCallable)
+	void SetMovementType(EMovementType movementType);
 };

@@ -9,5 +9,5 @@ bool UBTDecoratorHasPatrolPath::CalculateRawConditionValue(UBehaviorTreeComponen
 	auto aiComponent = actor->FindComponentByClass<UEnemyAIComponent>();
 	if (!aiComponent)
 		return false;
-	return aiComponent->PatrolPath != nullptr;
+	return IsValid(aiComponent->PatrolPath);
 }

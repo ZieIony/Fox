@@ -12,7 +12,10 @@ class ENEMYAI_API UBTTaskSetState: public UBTTaskNode {
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EEnemyAIState state = EEnemyAIState::Patrolling;
+	EEnemyAIState State = EEnemyAIState::Patrolling;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Keys")
+	FBlackboardKeySelector StateKey;
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 };
