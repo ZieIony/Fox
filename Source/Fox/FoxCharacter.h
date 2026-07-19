@@ -7,12 +7,16 @@
 #include "GameFramework/SpringArmComponent.h"
 #include <InputAction.h>
 #include <InputMappingContext.h>
+#include <Runtime/AIModule/Classes/GenericTeamAgentInterface.h>
 
 #include "FoxCharacter.generated.h"
 
 UCLASS()
-class FOX_API AFoxCharacter: public ACharacter {
+class FOX_API AFoxCharacter: public ACharacter, public IGenericTeamAgentInterface {
 	GENERATED_BODY()
+
+private:
+	FGenericTeamId teamId;
 
 public:
 	// camera
@@ -45,6 +49,12 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override {
+		teamId = NewTeamID;
+	}
+
+	virtual FGenericTeamId GetGenericTeamId() const override { return teamId; }
+
 	void Move(const FInputActionValue& value);
 
 	void JumpStarted(const FInputActionValue& value);
@@ -52,4 +62,7 @@ public:
 	void JumpEnded(const FInputActionValue& value);
 
 	void Look(const FInputActionValue& value);
+
+	UFUNCTION(BlueprintCallable)
+	void MakeLittleNoise(float MaxRange);
 };

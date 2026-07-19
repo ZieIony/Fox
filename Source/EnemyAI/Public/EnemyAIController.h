@@ -15,11 +15,28 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAIActionStarted);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAIActionFinished, EAIActionResult, Result);
 
+class UAIPerceptionComponent;
+class UAISenseConfig_Sight;
+class UAISenseConfig_Hearing;
+class UAISenseConfig_Damage;
+
 UCLASS()
 class ENEMYAI_API AEnemyAIController: public AAIController {
 	GENERATED_BODY()
 
+private:
+	UAIPerceptionComponent* aiPerceptionComponent;
+
+	UAISenseConfig_Sight* sightConfig;
+
+	UAISenseConfig_Hearing* hearingConfig;
+
+	UAISenseConfig_Damage* damageConfig;
+
 public:
+	AEnemyAIController();
+
+	// state
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EEnemyAIState AIState;
 
@@ -40,6 +57,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CancelAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void ReportDamage(AActor* DamageDealer);
 
 	// movement
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

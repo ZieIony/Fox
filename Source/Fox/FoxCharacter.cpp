@@ -3,15 +3,19 @@
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include "HeatSubsystem.h"
+#include <Runtime/AIModule/Classes/GenericTeamAgentInterface.h>
 
 AFoxCharacter::AFoxCharacter() {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 	SpringArm->SetupAttachment(RootComponent);
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+
+	FGenericTeamId enemyTeamId = 0;
+	SetGenericTeamId(enemyTeamId);
 }
 
 void AFoxCharacter::BeginPlay() {
@@ -68,4 +72,8 @@ void AFoxCharacter::Look(const FInputActionValue& value) {
 	FVector2D lookActionValue = value.Get<FVector2D>();
 	AddControllerYawInput(lookActionValue.X);
 	AddControllerPitchInput(lookActionValue.Y);
+}
+
+void AFoxCharacter::MakeLittleNoise(float MaxRange) {
+	MakeNoise(1.f, this, GetActorLocation(), MaxRange);
 }

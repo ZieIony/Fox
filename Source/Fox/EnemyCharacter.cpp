@@ -5,5 +5,5 @@
 AEnemyCharacter::AEnemyCharacter() {
 	PrimaryActorTick.bCanEverTick = true;
 
-	AIComponent = CreateDefaultSubobject<UEnemyAIComponent>(TEXT("AI"));
+	AIComponent = CreateDefaultSubobject<UEnemyAIComponent>(TEXT("Enemy AI"));
 }
