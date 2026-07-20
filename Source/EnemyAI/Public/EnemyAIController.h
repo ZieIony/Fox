@@ -19,6 +19,7 @@ class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
 class UAISenseConfig_Damage;
+class UAwarenessMeterWidget;
 
 UCLASS()
 class ENEMYAI_API AEnemyAIController: public AAIController {
@@ -33,8 +34,13 @@ private:
 
 	UAISenseConfig_Damage* damageConfig;
 
+	AActor* LastKnownPlayer = nullptr;
+
 public:
 	AEnemyAIController();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAwarenessMeterWidget> AwarenessMeterWidget;
 
 	// state
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -73,4 +79,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetMovementType(EMovementType movementType);
+
+	virtual void Tick(float DeltaTime) override;
 };

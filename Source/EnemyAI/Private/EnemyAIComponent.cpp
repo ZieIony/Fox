@@ -2,9 +2,19 @@
 
 #include <GameFramework/Character.h>
 
-AEnemyAIController* UEnemyAIComponent::GetAIController() const {
+void UEnemyAIComponent::BeginPlay() {
+	if (IsValid(AwarenessMeterWidgetClass)) {
+		AwarenessMeterWidget = CreateWidget<UAwarenessMeterWidget>(GetWorld(), AwarenessMeterWidgetClass);
+		AwarenessMeterWidget->AddToViewport();
+	} else {
+		UE_LOG(LogTemp, Error, TEXT("AwarenessMeterWidgetClass is null"));
+	}
+
 	auto character = Cast<ACharacter>(GetOwner());
-	if (IsValid(character))
-		return Cast<AEnemyAIController>(character->GetController());
-	return nullptr;
+	EnemyAIController = Cast<AEnemyAIController>(character->GetController());
+	if (IsValid(EnemyAIController)) {
+		EnemyAIController->AwarenessMeterWidget = AwarenessMeterWidget;
+	} else {
+		UE_LOG(LogTemp, Error, TEXT("AwarenessMeterWidget is null"));
+	}
 }
