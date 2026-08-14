@@ -36,7 +36,7 @@ public:
 	float AcceptableRadius;
 
 	UPROPERTY(Category = Node, EditAnywhere)
-	EPatrolMode patrolMode;
+	EPatrolMode PatrolMode;
 
 	UPROPERTY(Category = Node, EditAnywhere)
 	bool ReversePatrolDirectionAtCompletion;

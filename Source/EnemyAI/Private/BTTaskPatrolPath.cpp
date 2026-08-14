@@ -36,7 +36,7 @@ EBTNodeResult::Type UBTTaskPatrolPath::ProcessStep(
 	int currentPatrolPointIndex
 ) {
 	auto currentPatrolDirection = (EPatrolDirection)blackboard->GetValueAsEnum(CurrentPatrolDirectionKey.SelectedKeyName);
-	if (patrolMode == EPatrolMode::Step) {
+	if (PatrolMode == EPatrolMode::Step) {
 		if (patrolPath->IsLastPointIndex(currentPatrolPointIndex, currentPatrolDirection))
 			currentPatrolDirection = ReversePatrolDirectionIfNeeded(blackboard, currentPatrolDirection);
 		MoveToNextPoint(blackboard, patrolPath, currentPatrolPointIndex, currentPatrolDirection);
@@ -83,7 +83,8 @@ EBTNodeResult::Type UBTTaskPatrolPath::AbortTask(UBehaviorTreeComponent& OwnerCo
 }
 
 void UBTTaskPatrolPath::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) {
-	auto enemyAIComponent = OwnerComp.GetAIOwner()->GetPawn()->FindComponentByClass<UEnemyAIComponent>();
+	auto pawn = OwnerComp.GetAIOwner()->GetPawn();
+	auto enemyAIComponent = pawn->FindComponentByClass<UEnemyAIComponent>();
 	if (enemyAIComponent && enemyAIComponent->PatrolPath == nullptr) {
 		UE_LOG(LogTemp, Error, TEXT("PatrolPath is null"));
 	} else {
@@ -92,13 +93,13 @@ void UBTTaskPatrolPath::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		auto currentPatrolPointIndex = blackboard->GetValueAsInt(CurrentPatrolPointIndexKey.SelectedKeyName);
 		auto pointLocation = patrolPath->GetPointLocation(currentPatrolPointIndex);
 
-		auto actorLocation = OwnerComp.GetAIOwner()->GetPawn()->GetActorLocation();
+		auto aiController = enemyAIComponent->EnemyAIController.Get();
+		auto actorLocation = pawn->GetActorLocation();
 		float distSquared = FVector::DistSquared(pointLocation, actorLocation);
 		if (distSquared <= FMath::Square(AcceptableRadius)) {
 			if (ProcessStep(patrolPath.Get(), blackboard, currentPatrolPointIndex) == EBTNodeResult::Succeeded) {
 				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 			} else {
-				auto aiController = Cast<AAIController>(OwnerComp.GetAIOwner());
 				auto result = aiController->MoveToLocation(pointLocation, AcceptableRadius, false, true, true, true);
 				if (result == EPathFollowingRequestResult::Type::Failed) {
 					FinishLatentTask(OwnerComp, EBTNodeResult::Failed);

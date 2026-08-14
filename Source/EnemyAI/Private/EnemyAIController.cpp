@@ -52,16 +52,16 @@ AEnemyAIController::AEnemyAIController() {
 	sightConfig->SightRadius = 500;
 	sightConfig->LoseSightRadius = 700;
 	sightConfig->PeripheralVisionAngleDegrees = 60;
-	sightConfig->SetMaxAge(5);
+	sightConfig->SetMaxAge(1);
 	aiPerceptionComponent->ConfigureSense(*sightConfig);
 
 	hearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("Hearing Config"));
 	hearingConfig->HearingRange = 800;
-	hearingConfig->SetMaxAge(5);
+	hearingConfig->SetMaxAge(1);
 	aiPerceptionComponent->ConfigureSense(*hearingConfig);
 
 	damageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("Damage Config"));
-	damageConfig->SetMaxAge(5);
+	damageConfig->SetMaxAge(1);
 	aiPerceptionComponent->ConfigureSense(*damageConfig);
 
 	aiPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &AEnemyAIController::OnPerceptionUpdated);
@@ -101,6 +101,9 @@ void AEnemyAIController::SetMovementType(EMovementType movementType) {
 }
 
 void AEnemyAIController::Tick(float DeltaTime) {
+	if (IsValid(GetPawn()))
+		SetControlRotation(GetPawn()->GetActorRotation());
+
 	if (IsValid(AwarenessMeterWidget) && IsValid(LastKnownPlayer)) {
 		FActorPerceptionBlueprintInfo info;
 		aiPerceptionComponent->GetActorsPerception(LastKnownPlayer, info);
