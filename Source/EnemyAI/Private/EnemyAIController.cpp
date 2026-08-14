@@ -12,6 +12,37 @@
 #include <cmath>
 #include <numbers>
 
+void AEnemyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors) {
+	for (auto& actor : UpdatedActors) {
+		FActorPerceptionBlueprintInfo info;
+		aiPerceptionComponent->GetActorsPerception(actor, info);
+		if (info.bIsHostile) {
+			if (LastKnownPlayer != actor) {
+				AwarenessLevel = 0;
+				LastKnownPlayer = actor;
+			}
+			return;
+		}
+	}
+}
+
+void AEnemyAIController::UpdateAwarenessLevel(float AwarenessUpdate) {
+	AwarenessLevel = std::max(0.0f, std::min(AwarenessLevel + AwarenessUpdate, 1.0f));
+	AwarenessMeterWidget->SetAwarenessLevel(AwarenessLevel);
+
+	if (AwarenessLevel == 1.0f) {
+		AwarenessMeterWidget->SetAlerted(true);
+	} else if (AwarenessLevel == 0.0f) {
+		AwarenessMeterWidget->SetAlerted(false);
+	}
+
+	if (AwarenessLevel > 0.0f) {
+		AwarenessMeterWidget->SetVisibility(ESlateVisibility::Visible);
+	} else {
+		AwarenessMeterWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
 AEnemyAIController::AEnemyAIController() {
 	aiPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception"));
 	SetPerceptionComponent(*aiPerceptionComponent);
@@ -33,6 +64,8 @@ AEnemyAIController::AEnemyAIController() {
 	damageConfig->SetMaxAge(5);
 	aiPerceptionComponent->ConfigureSense(*damageConfig);
 
+	aiPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &AEnemyAIController::OnPerceptionUpdated);
+
 	FGenericTeamId enemyTeamId = 1;
 	SetGenericTeamId(enemyTeamId);
 }
@@ -53,7 +86,6 @@ void AEnemyAIController::CancelAttack() {
 }
 
 void AEnemyAIController::ReportDamage(AActor* DamageDealer) {
-	LastKnownPlayer = DamageDealer;
 	UAISense_Damage::ReportDamageEvent(GetPawn()->GetWorld(), GetPawn(), DamageDealer, 1, DamageDealer->GetActorLocation(), DamageDealer->GetActorLocation());
 }
 
@@ -70,6 +102,20 @@ void AEnemyAIController::SetMovementType(EMovementType movementType) {
 
 void AEnemyAIController::Tick(float DeltaTime) {
 	if (IsValid(AwarenessMeterWidget) && IsValid(LastKnownPlayer)) {
+		FActorPerceptionBlueprintInfo info;
+		aiPerceptionComponent->GetActorsPerception(LastKnownPlayer, info);
+		float awarenessUpdate = 0.0f;
+		for (auto& sense : info.LastSensedStimuli) {
+			if (sense.WasSuccessfullySensed()) {
+				awarenessUpdate += DeltaTime * sense.Strength;
+			}
+		}
+		if (awarenessUpdate != 0.0f) {
+			UpdateAwarenessLevel(awarenessUpdate);
+		} else {
+			UpdateAwarenessLevel(DeltaTime * -0.5f);
+		}
+
 		auto playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		auto playerLocation = LastKnownPlayer->GetActorLocation();
 		auto enemyLocation = GetPawn()->GetActorLocation();

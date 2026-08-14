@@ -15,8 +15,13 @@ public:
 	UProgressBar* ProgressBar;
 
 	UFUNCTION(BlueprintCallable)
-	void SetProgress(float progress);
+	void SetAwarenessLevel(float AwarenessLevel);
+
+	UFUNCTION(BlueprintCallable)
+	void SetAlerted(bool Alerted);
 
 	UFUNCTION(BlueprintCallable)
 	void SetAngle(float angle);
+
+	virtual void NativeConstruct() override;
 };

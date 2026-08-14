@@ -6,6 +6,7 @@
 #include "AIActionResult.h"
 #include "EnemyAIState.h"
 #include <MovementType.h>
+#include <Perception/AIPerceptionTypes.h>
 
 #include "EnemyAIController.generated.h"
 
@@ -36,8 +37,16 @@ private:
 
 	AActor* LastKnownPlayer = nullptr;
 
+	UFUNCTION()
+	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+	void UpdateAwarenessLevel(float AwarenessUpdate);
+
 public:
 	AEnemyAIController();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float AwarenessLevel = 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAwarenessMeterWidget> AwarenessMeterWidget;
