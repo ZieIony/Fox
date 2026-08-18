@@ -8,44 +8,99 @@
 #include "GameFramework/Character.h"
 #include <Kismet/GameplayStatics.h>
 #include "AwarenessMeterWidget.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 #include <cmath>
 #include <numbers>
+
+bool AEnemyAIController::WasSuccessfullySensed(const FActorPerceptionBlueprintInfo& info) {
+	for (auto& sense : info.LastSensedStimuli) {
+		if (sense.WasSuccessfullySensed())
+			return true;
+	}
+	return false;
+}
 
 void AEnemyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors) {
 	for (auto& actor : UpdatedActors) {
 		FActorPerceptionBlueprintInfo info;
 		aiPerceptionComponent->GetActorsPerception(actor, info);
-		if (info.bIsHostile) {
+		if (info.bIsHostile && WasSuccessfullySensed(info)) {
 			if (LastKnownPlayer != actor) {
-				AwarenessLevel = 0;
 				LastKnownPlayer = actor;
+				GetBlackboardComponent()->SetValueAsObject("LastKnownPlayer", LastKnownPlayer);
+				LastKnownPosition = actor->GetActorLocation();
+				GetBlackboardComponent()->SetValueAsVector("LastKnownPosition", LastKnownPosition);
 			}
 			return;
 		}
 	}
 }
 
-void AEnemyAIController::UpdateAwarenessLevel(float AwarenessUpdate) {
-	AwarenessLevel = std::max(0.0f, std::min(AwarenessLevel + AwarenessUpdate, 1.0f));
-	AwarenessMeterWidget->SetAwarenessLevel(AwarenessLevel);
+void AEnemyAIController::IncreaseAwarenessLevel(float DeltaTime, float AwarenessUpdate) {
+	if (PerceptionState == EPerceptionState::Idle || PerceptionState == EPerceptionState::Suspicious) {
+		AwarenessLevel = std::max(0.0f, std::min(AwarenessLevel + DeltaTime * AwarenessUpdate, 1.0f));
+	} if (PerceptionState == EPerceptionState::Alerted) {
+		AwarenessLevel = 1.0f;
+	}
 
-	if (AwarenessLevel == 1.0f) {
+	if (AwarenessLevel == 1.0f && PerceptionState != EPerceptionState::Engaged) {
 		AwarenessMeterWidget->SetAlerted(true);
-	} else if (AwarenessLevel == 0.0f) {
+		SetPerceptionState(EPerceptionState::Engaged);
+	} else if (AwarenessLevel > 0.25f && PerceptionState == EPerceptionState::Idle) {
+		SetPerceptionState(EPerceptionState::Suspicious);
+	} else if (AwarenessLevel == 0.0f && PerceptionState != EPerceptionState::Idle) {
 		AwarenessMeterWidget->SetAlerted(false);
+		SetPerceptionState(EPerceptionState::Idle);
 	}
 
 	if (AwarenessLevel > 0.0f) {
 		AwarenessMeterWidget->SetVisibility(ESlateVisibility::Visible);
-	} else {
+		AwarenessMeterWidget->SetAwarenessLevel(AwarenessLevel);
+	}
+}
+
+void AEnemyAIController::DecreaseAwarenessLevel(float DeltaTime) {
+	if (PerceptionState == EPerceptionState::Suspicious) {
+		AwarenessLevel = std::max(0.0f, std::min(AwarenessLevel - DeltaTime * 0.5f, 1.0f));
+	} if (PerceptionState == EPerceptionState::Alerted) {
+		AwarenessLevel = std::max(0.0f, std::min(AwarenessLevel - DeltaTime * 0.25f, 1.0f));
+	}
+
+	if (PerceptionState == EPerceptionState::Engaged) {
+		SetPerceptionState(EPerceptionState::Alerted);
+	} else if (AwarenessLevel == 0.0f && PerceptionState != EPerceptionState::Idle) {
+		AwarenessMeterWidget->SetAlerted(false);
 		AwarenessMeterWidget->SetVisibility(ESlateVisibility::Collapsed);
+		SetPerceptionState(EPerceptionState::Idle);
+	}
+
+	if (AwarenessLevel > 0.0f)
+		AwarenessMeterWidget->SetAwarenessLevel(AwarenessLevel);
+}
+
+void AEnemyAIController::UpdateAwarenessLevel(float DeltaTime) {
+	if (!aiPerceptionComponent->IsActive())
+		return;
+
+	FActorPerceptionBlueprintInfo info;
+	aiPerceptionComponent->GetActorsPerception(LastKnownPlayer, info);
+	float awarenessUpdate = 0.0f;
+	for (auto& sense : info.LastSensedStimuli) {
+		if (sense.WasSuccessfullySensed())
+			awarenessUpdate += sense.Strength;
+	}
+	if (awarenessUpdate != 0.0f) {
+		IncreaseAwarenessLevel(DeltaTime, awarenessUpdate);
+	} else {
+		DecreaseAwarenessLevel(DeltaTime);
 	}
 }
 
 AEnemyAIController::AEnemyAIController() {
 	aiPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception"));
 	SetPerceptionComponent(*aiPerceptionComponent);
+	aiPerceptionComponent->Activate();
 	aiPerceptionComponent->SetDominantSense(UAISense_Sight::StaticClass());
 
 	sightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
@@ -70,19 +125,24 @@ AEnemyAIController::AEnemyAIController() {
 	SetGenericTeamId(enemyTeamId);
 }
 
-void AEnemyAIController::Attack() {
-	AIState = EEnemyAIState::Attacking;
-	OnAttackStarted.Broadcast();
+void AEnemyAIController::SetPerceptionState(EPerceptionState NewState) {
+	if (PerceptionState != NewState) {
+		PerceptionState = NewState;
+		GetBlackboardComponent()->SetValueAsEnum("PerceptionState", (uint8)PerceptionState);
+		OnPerceptionStateChanged.Broadcast(PerceptionState);
+	}
 }
 
-void AEnemyAIController::FinishAttack() {
-	AIState = EEnemyAIState::Idle;
-	OnAttackFinished.Broadcast(EAIActionResult::Succeeded);
+void AEnemyAIController::PerformAction() {
+	OnActionStarted.Broadcast();
 }
 
-void AEnemyAIController::CancelAttack() {
-	AIState = EEnemyAIState::Idle;
-	OnAttackFinished.Broadcast(EAIActionResult::Cancelled);
+void AEnemyAIController::FinishAction() {
+	OnActionFinished.Broadcast(EAIActionResult::Succeeded);
+}
+
+void AEnemyAIController::CancelAction() {
+	OnActionFinished.Broadcast(EAIActionResult::Cancelled);
 }
 
 void AEnemyAIController::ReportDamage(AActor* DamageDealer) {
@@ -105,19 +165,7 @@ void AEnemyAIController::Tick(float DeltaTime) {
 		SetControlRotation(GetPawn()->GetActorRotation());
 
 	if (IsValid(AwarenessMeterWidget) && IsValid(LastKnownPlayer)) {
-		FActorPerceptionBlueprintInfo info;
-		aiPerceptionComponent->GetActorsPerception(LastKnownPlayer, info);
-		float awarenessUpdate = 0.0f;
-		for (auto& sense : info.LastSensedStimuli) {
-			if (sense.WasSuccessfullySensed()) {
-				awarenessUpdate += DeltaTime * sense.Strength;
-			}
-		}
-		if (awarenessUpdate != 0.0f) {
-			UpdateAwarenessLevel(awarenessUpdate);
-		} else {
-			UpdateAwarenessLevel(DeltaTime * -0.5f);
-		}
+		UpdateAwarenessLevel(DeltaTime);
 
 		auto playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		auto playerLocation = LastKnownPlayer->GetActorLocation();

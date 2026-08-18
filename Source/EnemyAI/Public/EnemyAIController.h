@@ -4,17 +4,18 @@
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "AIActionResult.h"
-#include "EnemyAIState.h"
+#include "PerceptionState.h"
 #include <MovementType.h>
 #include <Perception/AIPerceptionTypes.h>
+#include <Perception/AIPerceptionComponent.h>
 
 #include "EnemyAIController.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyStateChanged, EEnemyAIState, NewState);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAIActionStarted);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAIActionFinished, EAIActionResult, Result);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPerceptionStateChanged, EPerceptionState, NewPerceptionState);
 
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
@@ -35,15 +36,25 @@ private:
 
 	UAISenseConfig_Damage* damageConfig;
 
-	AActor* LastKnownPlayer = nullptr;
+	bool WasSuccessfullySensed(const FActorPerceptionBlueprintInfo& info);
 
 	UFUNCTION()
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
-	void UpdateAwarenessLevel(float AwarenessUpdate);
+	void IncreaseAwarenessLevel(float DeltaTime, float AwarenessUpdate);
+
+	void DecreaseAwarenessLevel(float DeltaTime);
+
+	void UpdateAwarenessLevel(float DeltaTime);
 
 public:
 	AEnemyAIController();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<AActor> LastKnownPlayer = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector LastKnownPosition;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float AwarenessLevel = 0;
@@ -53,25 +64,28 @@ public:
 
 	// state
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EEnemyAIState AIState;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnEnemyStateChanged OnStateChangedEvent;
-
-	UPROPERTY(BlueprintAssignable)
-	FAIActionStarted OnAttackStarted;
-
-	UPROPERTY(BlueprintAssignable)
-	FAIActionFinished OnAttackFinished;
+	EPerceptionState PerceptionState;
 
 	UFUNCTION(BlueprintCallable)
-	void Attack();
+	void SetPerceptionState(EPerceptionState NewState);
+
+	UPROPERTY(BlueprintAssignable)
+	FPerceptionStateChanged OnPerceptionStateChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FAIActionStarted OnActionStarted;
+
+	UPROPERTY(BlueprintAssignable)
+	FAIActionFinished OnActionFinished;
 
 	UFUNCTION(BlueprintCallable)
-	void FinishAttack();
+	void PerformAction();
 
 	UFUNCTION(BlueprintCallable)
-	void CancelAttack();
+	void FinishAction();
+
+	UFUNCTION(BlueprintCallable)
+	void CancelAction();
 
 	UFUNCTION(BlueprintCallable)
 	void ReportDamage(AActor* DamageDealer);

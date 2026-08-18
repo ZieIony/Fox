@@ -4,24 +4,24 @@
 #include "CoreMinimal.h"
 #include "AIActionResult.h"
 
-#include "BTTaskAttack.generated.h"
+#include "BTTaskPerformAction.generated.h"
 
 class AEnemyAIController;
 
 UCLASS()
-class ENEMYAI_API UBTTaskAttack: public UBTTaskNode {
+class ENEMYAI_API UBTTaskPerformAction: public UBTTaskNode {
 	GENERATED_BODY()
 
 private:
 	AEnemyAIController* aiController = nullptr;
 	UBehaviorTreeComponent* owner = nullptr;
 
-	UBTTaskAttack() {
+	UBTTaskPerformAction() {
 		bCreateNodeInstance = true;
 	}
 
 	UFUNCTION()
-	void onAttackFinished(EAIActionResult result);
+	void onActionFinished(EAIActionResult result);
 
 protected:
 	virtual void SetOwner(AActor* ActorOwner) override;
