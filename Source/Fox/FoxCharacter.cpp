@@ -2,8 +2,7 @@
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
-#include "HeatSubsystem.h"
-#include <Runtime/AIModule/Classes/GenericTeamAgentInterface.h>
+#include <AbilitySystemComponent.h>
 
 AFoxCharacter::AFoxCharacter() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,8 +13,11 @@ AFoxCharacter::AFoxCharacter() {
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	FGenericTeamId enemyTeamId = 0;
-	SetGenericTeamId(enemyTeamId);
+	SetGenericTeamId(PLAYER_TEAM_ID);
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("Ability System"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void AFoxCharacter::BeginPlay() {
@@ -30,6 +32,11 @@ void AFoxCharacter::BeginPlay() {
 			subsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
+}
+
+void AFoxCharacter::OnRep_PlayerState() {
+	Super::OnRep_PlayerState();
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 }
 
 void AFoxCharacter::Tick(float DeltaTime) {
