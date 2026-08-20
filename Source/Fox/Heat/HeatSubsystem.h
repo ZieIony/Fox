@@ -4,7 +4,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "HeatSourceComponent.h"
 #include "PowerSource.h"
-#include "FoxGameplayTagManager.h"
+#include "../FoxGameplayTagManager.h"
 #include "HeatSubsystem.generated.h"
 
 /**

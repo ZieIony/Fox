@@ -6,7 +6,7 @@
 #include "NativeGameplayTags.h"
 #include "PowerSourceState.h"
 #include "PowerSourceType.h"
-#include "InteractionComponent.h"
+#include "../Interaction/InteractionComponent.h"
 
 #include "PowerSource.generated.h"
 

@@ -1,6 +1,6 @@
 #include "InteractionComponent.h"
 
-#include "FoxCharacter.h"
+#include "../FoxCharacter.h"
 
 void UInteractionComponent::InteractionSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool FromSweep, const FHitResult& SweepResults) {
 	auto foxCharacter = Cast<AFoxCharacter>(OtherActor);

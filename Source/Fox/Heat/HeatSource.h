@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "InteractionComponent.h"
+#include "../Interaction/InteractionComponent.h"
 #include "HeatSourceComponent.h"
 
 #include "HeatSource.generated.h"
