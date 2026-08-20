@@ -71,6 +71,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+	class UBasicAttributeSet* BasicAttributeSet;
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override {
 		return AbilitySystemComponent;
 	}

@@ -3,6 +3,7 @@
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include <AbilitySystemComponent.h>
+#include "BasicAttributeSet.h"
 
 AFoxCharacter::AFoxCharacter() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -18,6 +19,8 @@ AFoxCharacter::AFoxCharacter() {
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("Ability System"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	BasicAttributeSet = CreateDefaultSubobject<UBasicAttributeSet>(TEXT("BasicAttributeSet"));
 }
 
 void AFoxCharacter::BeginPlay() {
